@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prep Sheet — Exam Readiness Tracker</title>
+<meta name="description" content="A SSC/Banking exam prep tracker with a real SQLite database running in the browser. Take mock tests, track section-wise readiness, and see your weakest area at a glance.">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='10' fill='%231a2540'/%3E%3Ccircle cx='20' cy='22' r='7' fill='none' stroke='%23f4efe6' stroke-width='3'/%3E%3Ccircle cx='44' cy='22' r='7' fill='%23f4efe6'/%3E%3Ccircle cx='20' cy='44' r='7' fill='none' stroke='%23f4efe6' stroke-width='3'/%3E%3Ccircle cx='44' cy='44' r='7' fill='none' stroke='%23f4efe6' stroke-width='3'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@500;600;700;800&family=Work+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="wrap">
+
+  <!-- HALL TICKET HEADER -->
+  <section class="ticket" id="ticket">
+    <div class="ticket-top">
+      <div class="ticket-org">
+        <span class="ticket-eyebrow">Self-Issued Admit Card</span>
+        <h1>PREP SHEET</h1>
+        <span class="ticket-sub">Exam Readiness Tracker</span>
+      </div>
+      <div class="ticket-photo" id="ticketInitials">SL</div>
+    </div>
+
+    <div class="ticket-perforation"></div>
+
+    <div class="ticket-body">
+      <div class="ticket-field">
+        <label>Candidate Name</label>
+        <input type="text" id="candidateName" placeholder="Your name" value="Sakshi Ravindra Lakhe">
+      </div>
+      <div class="ticket-field">
+        <label>Candidate ID</label>
+        <div class="ticket-static mono" id="candidateId">— generated on save —</div>
+      </div>
+      <div class="ticket-field">
+        <label>Target Exam</label>
+        <select id="targetExam">
+          <option value="SSC CGL">SSC CGL</option>
+          <option value="SSC CHSL">SSC CHSL</option>
+          <option value="IBPS PO">IBPS PO</option>
+          <option value="IBPS Clerk">IBPS Clerk</option>
+          <option value="SBI PO">SBI PO</option>
+          <option value="SBI Clerk">SBI Clerk</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+      <div class="ticket-field">
+        <label>Exam Date</label>
+        <input type="date" id="targetDate">
+      </div>
+      <div class="ticket-field countdown-field">
+        <label>Days Remaining</label>
+        <div class="ticket-countdown mono" id="daysRemaining">—</div>
+      </div>
+      <button class="btn-save-profile" id="saveProfileBtn">Save</button>
+    </div>
+  </section>
+
+  <!-- MAIN GRID -->
+  <div class="main-grid">
+
+    <!-- LOG A MOCK TEST -->
+    <section class="panel form-panel">
+      <div class="panel-head">
+        <span class="panel-eyebrow">Section A</span>
+        <h2>Mock Test</h2>
+      </div>
+
+      <div class="mode-tabs">
+        <button class="mode-tab active" data-mode="take">Take a mock test</button>
+        <button class="mode-tab" data-mode="log">Log existing score</button>
+      </div>
+
+      <!-- MODE 1: TAKE A MOCK TEST -->
+      <div id="mode-take">
+
+        <!-- Setup screen -->
+        <div id="quizSetup">
+          <div class="field">
+            <label>Exam Type</label>
+            <select id="quizExamType">
+              <option value="SSC CGL">SSC CGL</option>
+              <option value="SSC CHSL">SSC CHSL</option>
+              <option value="IBPS PO">IBPS PO</option>
+              <option value="IBPS Clerk">IBPS Clerk</option>
+              <option value="SBI PO">SBI PO</option>
+              <option value="SBI Clerk">SBI Clerk</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label>Question Source</label>
+            <div class="source-toggle">
+              <button type="button" class="source-btn active" data-source="bank">Built-in bank (10/section, instant)</button>
+              <button type="button" class="source-btn" data-source="ai">Generate fresh with AI</button>
+            </div>
+          </div>
+
+          <div class="field" id="aiCountField" style="display:none">
+            <label>Questions per section</label>
+            <select id="aiQuestionCount">
+              <option value="3">3</option>
+              <option value="5" selected>5</option>
+              <option value="8">8</option>
+            </select>
+            <div class="hint-small">Uses your free Gemini API key — generated questions aren't saved permanently, just used for this test.</div>
+          </div>
+
+          <div class="field">
+            <label>Timer</label>
+            <select id="quizTimer">
+              <option value="0">No timer</option>
+              <option value="10">10 minutes</option>
+              <option value="20" selected>20 minutes</option>
+              <option value="30">30 minutes</option>
+            </select>
+          </div>
+
+          <button class="btn-primary" id="startQuizBtn">Start test →</button>
+          <div class="quiz-status mono" id="quizStatus"></div>
+        </div>
+
+        <!-- Active quiz screen -->
+        <div id="quizActive" style="display:none">
+          <div class="quiz-topbar">
+            <span class="mono" id="quizProgress">Question 1 of 40</span>
+            <span class="mono quiz-timer" id="quizTimerDisplay">—</span>
+          </div>
+          <div class="quiz-section-label" id="quizSectionLabel">Quantitative Aptitude</div>
+          <div class="quiz-question" id="quizQuestion"></div>
+          <div class="quiz-options" id="quizOptions"></div>
+          <div class="quiz-nav">
+            <button type="button" class="btn-ghost" id="quizPrevBtn">← Previous</button>
+            <button type="button" class="btn-primary" id="quizNextBtn">Next →</button>
+          </div>
+        </div>
+
+        <!-- Results screen -->
+        <div id="quizResults" style="display:none">
+          <h3 class="results-title">Test complete</h3>
+          <div id="quizResultsGrid" class="results-grid"></div>
+          <button class="btn-primary" id="saveQuizResultBtn">Save this result to my tracker</button>
+          <button class="btn-ghost" id="retakeQuizBtn">Take another test</button>
+        </div>
+      </div>
+
+      <!-- MODE 2: LOG EXISTING SCORE (manual entry) -->
+      <div id="mode-log" style="display:none">
+        <form id="mockForm">
+          <div class="field-row">
+            <div class="field">
+              <label>Test Date</label>
+              <input type="date" id="testDate" required>
+            </div>
+            <div class="field">
+              <label>Exam Type</label>
+              <select id="mockExamType">
+                <option value="SSC CGL">SSC CGL</option>
+                <option value="SSC CHSL">SSC CHSL</option>
+                <option value="IBPS PO">IBPS PO</option>
+                <option value="IBPS Clerk">IBPS Clerk</option>
+                <option value="SBI PO">SBI PO</option>
+                <option value="SBI Clerk">SBI Clerk</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="omr-instructions">For a test you took elsewhere (coaching app, printed paper) — enter marks obtained / total for each section.</div>
+
+          <div class="section-inputs" id="sectionInputs"></div>
+
+          <div class="field">
+            <label>Notes <span class="optional">(optional)</span></label>
+            <textarea id="mockNotes" placeholder="What went wrong, what to revise..."></textarea>
+          </div>
+
+          <button type="submit" class="btn-primary">Save this score</button>
+        </form>
+      </div>
+    </section>
+
+    <!-- DASHBOARD -->
+    <section class="panel dashboard-panel">
+      <div class="panel-head">
+        <span class="panel-eyebrow">Section B</span>
+        <h2>Readiness Dashboard</h2>
+        <span class="mono panel-count" id="mockCount">0 tests logged</span>
+      </div>
+
+      <div class="priority-banner" id="priorityBanner" style="display:none">
+        <span class="priority-label">Priority Section</span>
+        <span class="priority-text" id="priorityText"></span>
+      </div>
+
+      <div class="sections-grid" id="statsGrid"></div>
+
+      <div class="empty-dashboard" id="emptyDashboard">
+        <div class="empty-mark">○</div>
+        <p>No mock tests logged yet. Fill in Section A to see your readiness bubbles fill in.</p>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- HISTORY -->
+  <section class="panel history-panel">
+    <div class="panel-head">
+      <span class="panel-eyebrow">Section C</span>
+      <h2>Test History</h2>
+      <button class="btn-export mono" id="exportBtn">↓ Export CSV</button>
+    </div>
+    <div class="table-wrap">
+      <table id="historyTable">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Exam</th>
+            <th>Quant</th>
+            <th>Reasoning</th>
+            <th>English</th>
+            <th>Awareness</th>
+            <th>Overall</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="historyBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer class="footer mono">Built by Sakshi Lakhe — runs entirely in your browser, data never leaves your device.</footer>
+
+</div>
+
+<!-- API KEY MODAL (only needed for optional AI-generated questions) -->
+<div class="modal-backdrop" id="modalBackdrop">
+  <div class="modal">
+    <h2>Google Gemini API key</h2>
+    <p>Free at <a href="https://aistudio.google.com/apikey" target="_blank">aistudio.google.com/apikey</a>. Only needed for "Generate fresh with AI" — the built-in question bank works without it. Stored only in your browser, sent directly to Google, never touches any server.</p>
+    <input type="password" id="apiKeyInput" placeholder="AIza…">
+    <div class="modal-actions">
+      <button class="cancel" id="keyCancel">Cancel</button>
+      <button class="save" id="keySave">Save key</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sql.js@1.10.3/dist/sql-wasm.js"></script>
+<script src="js/questionBank.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
