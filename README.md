@@ -16,7 +16,7 @@ have — tracking my own SSC/banking prep — and it's built around the
 specific visual language of Indian competitive exams, not a generic
 dashboard template.
 
-## How it works (the part worth explaining in an interview)
+## How it works 
 
 **This app runs a real SQLite database inside your browser** — not
 JavaScript arrays pretending to be a database. It uses `sql.js`, which
@@ -56,9 +56,7 @@ Browser
        - Chronological scores → the trend sparkline
 ```
 
-No backend and no required API key — this project fully works offline
-(after first load) with zero setup. The AI question generation is an
-optional enhancement, not a dependency.
+
 
 ## Folder structure
 
@@ -73,56 +71,5 @@ exam-tracker/
 └── README.md
 ```
 
-## How to run it in VS Code
-
-1. Open this folder in VS Code: **File → Open Folder** → select `exam-tracker`.
-2. Install the **Live Server** extension (search it in Extensions, one click).
-3. Right-click `index.html` → **"Open with Live Server."**
-4. It opens in your browser and works immediately — no setup, no build step.
-
-(You can also just double-click `index.html` directly — it works the
-same way. Live Server just gives you auto-reload while editing.)
-
-**Note:** the app loads the SQLite engine from a CDN on first load, so
-you need an internet connection the first time you open it in a
-browser session. After that, your logged data is stored locally on your
-device and works offline.
-
-## Using it
-
-1. Fill in your name and target exam in the hall ticket header, click **Save**.
-2. In Section A, choose **"Take a mock test"** — pick your exam type, question
-   source (built-in bank or AI-generated), and a timer, then **Start test**.
-3. Answer by clicking the A/B/C/D bubble for each question, then **Next**.
-4. On finishing, see your section-wise score, then **Save this result to my
-   tracker** — it's written straight into your SQL history, no manual typing.
-5. Already took a test elsewhere (coaching app, printed paper)? Use the
-   **"Log existing score"** tab instead to enter marks directly.
-6. Watch the OMR bubbles in Section B fill in based on your average accuracy
-   per section, with your weakest section flagged automatically.
-7. Export your full history as a CSV any time from Section C.
-
-## Design decisions worth explaining in an interview
-
-- **The hall ticket / OMR concept** is the signature design choice —
-  built specifically for this subject rather than reusing a generic
-  dashboard look, because the objects are instantly recognizable to
-  anyone who's taken one of these exams.
-- **Real SQL, not mock data structures** — `db.run()` and `db.exec()`
-  calls in `app.js` are genuine SQLite queries, including an `ON
-  CONFLICT DO UPDATE` upsert for the profile table.
-- **No AI/LLM dependency** — deliberately. This project exists to prove
-  data modeling and SQL skill on its own, not to lean on a prompt again.
-- **Data never leaves the device** — no server, no account, no tracking.
-  Good practice to mention when asked about privacy-by-design.
-
-## Honest limitations (good to know, good to mention if asked)
-
-- Data is stored per-browser, per-device — it won't sync across devices
-  unless you manually export/import the CSV.
-- Currently tracks four fixed sections (Quant, Reasoning, English,
-  General Awareness). A natural v2 improvement: add a fifth
-  "Banking Awareness / Computer Knowledge" column for banking-specific
-  prep, and a proper Import CSV feature to restore from backup.
 
 
